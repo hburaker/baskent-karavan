@@ -32,7 +32,22 @@ Bu dosya, bu projede çalışacak yapay zekâ asistanları (Claude, Copilot, Cur
 - Fontlar: Google Fonts — Manrope (başlık+gövde, Türkçe ve Kiril destekli), Playfair Display italik (slogan).
 - İkonlar: `src/components/Icon.astro` (inline SVG, harici kütüphane yok).
 - Komutlar: `npm install`, `npm run dev` (http://localhost:4321), `npm run build` (çıktı `dist/`), `npm run preview`.
-- Yayın: Cloudflare Pages / Netlify / Vercel — build `npm run build`, çıktı `dist`.
+- Yayın: Cloudflare Workers (bkz. 3.1).
+
+## 3.1 Git ve yayın (GitHub → Cloudflare)
+
+- **Repo:** https://github.com/hburaker/baskent-karavan (kişisel GitHub hesabı `hburaker`; şirket GitLab'ı DEĞİL). Branch: `main`.
+- `origin` adresi kullanıcı adıyla tanımlı: `https://hburaker@github.com/hburaker/baskent-karavan.git`. Böylece bilgisayarda başka bir GitHub hesabı kayıtlı olsa bile push her zaman `hburaker` hesabıyla yapılır; giriş gerekirse Git Credential Manager tarayıcıdan oturum açtırır.
+- Commit kimliği (yalnızca bu repo): `Halit Burak Eroğlu <halitburakeroglu@gmail.com>` — şirket e-postası bu projede kullanılmaz. İlk 3 commit şirket e-postasıyla atılmıştır (geçmiş değiştirilmedi).
+- Yerel `.git/config` ayarları: `credential "https://github.com".username = hburaker`, `push.autoSetupRemote = true`, `main` → `origin/main` takipli. Yani günlük kullanım sadece:
+  ```bash
+  git add .
+  git commit -m "açıklama"
+  git push
+  ```
+- **Yayın:** Cloudflare **Workers** (Pages değil) GitHub'a bağlı. `main`'e her push'ta otomatik build + deploy olur. Ayarlar: build `npm run build`, deploy `npx wrangler deploy`, preview `npx wrangler preview`, build değişkeni `NODE_VERSION=22`. Worker yapılandırması `wrangler.jsonc` (assets `./dist`, `404-page`, `auto-trailing-slash`); Worker adı Cloudflare'deki adla (`baskent-karavan`) aynı olmalı.
+- `public/_redirects` Workers static assets tarafından da okunur (limit 2000 statik + 100 dinamik kural; yönlendirmeler dosyalardan önce uygulanır).
+- Build'i kod değişikliği olmadan tetiklemek için: `git commit --allow-empty -m "build tetikle" && git push`.
 
 ## 4. Çoklu dil (i18n)
 
@@ -123,3 +138,4 @@ src/styles/global.css       renk değişkenleri, butonlar, bölümler, .reveal a
 
 - **2026-11-06:** Proje oluşturuldu. Eski siteden 6 model (fiyat, donanım, 147 galeri fotoğrafı), belgeler, etkinlikler, 9 SSS videosu, 10 blog yazısı, çerez politikası aktarıldı. 4 dil (TR/EN/DE/RU), ekstralarla canlı fiyat hesaplayan yapılandırıcı ve WhatsApp teklif akışı eklendi. 16 ekstra (buzdolabı, güneş paneli, jel akü, frenli şasi, klima, inverter, tente vb.) tahmini fiyatlarla.
 - **2026-11-11:** SEO geçişi: eski sitenin 570 adresi (sayfalar + 545 ek sayfası) tarandı; Türkçe title/description eski siteyle eşitlendi; ~1000 kuralla `public/_redirects` (301) eklendi; BreadcrumbList, WebSite, WebPage, FAQPage şemaları, robots meta, Twitter kartı, doğrulama/Metrica ayarları eklendi. Astro `redirects` ayarı kaldırıldı (yerine `_redirects`).
+- **2026-11-11:** GitHub reposu (hburaker/baskent-karavan) ve Cloudflare Workers otomatik yayını kuruldu; `wrangler.jsonc` eklendi; git push ayarları ve bu bölüm (3.1) eklendi.
