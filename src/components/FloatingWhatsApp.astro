@@ -1,0 +1,52 @@
+---
+import Icon from './Icon.astro';
+import { site, waLink } from '../data/site';
+import { ui, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang; text?: string }
+const { lang, text } = Astro.props;
+const t = ui[lang];
+---
+<div class="fab" data-fab>
+  <a class="fab-wa" href={waLink(text ?? t['wa.generic'])} target="_blank" rel="noopener" aria-label="WhatsApp">
+    <Icon name="whatsapp" />
+    <span>{t['cta.whatsapp']}</span>
+  </a>
+  <a class="fab-call" href={`tel:${site.phones[0].tel}`} aria-label={t['cta.call']}>
+    <Icon name="phone" />
+    <span>{t['cta.call']}</span>
+  </a>
+</div>
+
+<style>
+  .fab { position: fixed; right: 20px; bottom: 20px; z-index: 90; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+  .fab a {
+    display: inline-flex; align-items: center; gap: 10px; height: 58px; padding: 0 18px; border-radius: 999px; white-space: nowrap;
+    font-weight: 800; box-shadow: 0 12px 30px -8px rgb(0 0 0 / 0.35); transition: transform 0.25s var(--ease);
+  }
+  .fab a:hover { transform: translateY(-3px); }
+  .fab :global(svg) { width: 26px; height: 26px; }
+  .fab-wa { background: var(--wa); color: #fff; }
+  .fab-wa span { max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width 0.35s var(--ease); }
+  .fab-wa:hover span { max-width: 120px; }
+  .fab-wa::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: 0 0 0 0 rgb(37 211 102 / 0.55);
+    animation: pulse 2.6s infinite; pointer-events: none;
+  }
+  .fab-wa { position: relative; }
+  .fab-call { display: none !important; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgb(37 211 102 / 0.5); } 70% { box-shadow: 0 0 0 16px rgb(37 211 102 / 0); } 100% { box-shadow: 0 0 0 0 rgb(37 211 102 / 0); } }
+
+  @media (max-width: 560px) {
+    .fab {
+      left: 0; right: 0; bottom: 0; flex-direction: row; gap: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: rgb(11 21 18 / 0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .fab a { flex: 1; justify-content: center; height: 50px; box-shadow: none; border-radius: 14px; }
+    .fab a + a { margin-left: 10px; }
+    .fab-wa span { max-width: none; }
+    .fab-wa::after { display: none; }
+    .fab-call { display: inline-flex !important; background: var(--ochre-400); color: var(--ink); }
+    :global(body) { padding-bottom: 0; }
+  }
+</style>

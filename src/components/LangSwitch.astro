@@ -1,0 +1,51 @@
+---
+import Icon from './Icon.astro';
+import { langs, langMeta, ui, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang; alternates: Record<Lang, string> }
+const { lang, alternates } = Astro.props;
+---
+<details class="lang" data-lang-switch>
+  <summary aria-label={ui[lang]['nav.lang']}>
+    <Icon name="globe" size={18} />
+    <span>{langMeta[lang].short}</span>
+    <Icon name="chevron-down" size={14} />
+  </summary>
+  <ul>
+    {langs.map((l) => (
+      <li>
+        <a href={alternates[l]} hreflang={l} lang={l} aria-current={l === lang ? 'true' : undefined}>
+          <b>{langMeta[l].short}</b> {langMeta[l].label}
+          {l === lang && <Icon name="check" size={16} />}
+        </a>
+      </li>
+    ))}
+  </ul>
+</details>
+
+<script>
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll<HTMLDetailsElement>('[data-lang-switch][open]').forEach((d) => {
+      if (!d.contains(e.target as Node)) d.open = false;
+    });
+  });
+</script>
+
+<style>
+  .lang { position: relative; }
+  summary {
+    list-style: none; display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 12px;
+    border-radius: 999px; border: 1.5px solid rgb(127 127 127 / 0.35); cursor: pointer; font-weight: 800; font-size: 0.85rem; user-select: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { border-color: currentColor; }
+  ul {
+    position: absolute; right: 0; top: calc(100% + 8px); min-width: 190px; list-style: none; margin: 0; padding: 6px;
+    background: var(--white); color: var(--text); border-radius: 16px; box-shadow: var(--shadow-lg); z-index: 5;
+  }
+  a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; font-weight: 600; font-size: 0.94rem; }
+  a:hover { background: var(--sand-100); }
+  a b { width: 28px; font-size: 0.78rem; color: var(--ochre-700); }
+  a :global(svg) { margin-left: auto; color: var(--ochre-700); }
+  a[aria-current] { background: var(--sand-100); }
+</style>

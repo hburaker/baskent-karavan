@@ -1,0 +1,45 @@
+---
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import ProductCard from '../components/ProductCard.astro';
+import CompareTable from '../components/CompareTable.astro';
+import { products } from '../data/products';
+import { ui, url, formatPrice, type Lang } from '../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+const min = Math.min(...products.map((p) => p.price));
+---
+<PageHero lang={lang} kicker={t['models.kicker']} title={t['models.title']} lead={t['models.sub']} image="/images/products/hera-380/ext-02-sm.webp" crumbs={[{ label: t['nav.models'] }]}>
+  <p class="from"><span>{formatPrice(min, lang)}</span> {t['price.from']} · {t['price.vat']}</p>
+</PageHero>
+
+<section class="section">
+  <div class="container">
+    <div class="grid models-grid">
+      {products.map((p, i) => <ProductCard p={p} lang={lang} delay={i % 3} eager={i < 3} />)}
+    </div>
+  </div>
+</section>
+
+<section class="section section--sand" id="karsilastir">
+  <div class="container">
+    <div class="section-head section-head--split">
+      <div class="reveal">
+        <span class="kicker">{t['nav.models']}</span>
+        <h2 class="h2">{t['models.compareTitle']}</h2>
+        <p class="lead">{t['models.compareSub']}</p>
+      </div>
+      <a href={url(lang, 'configure')} class="btn btn--primary reveal"><Icon name="sliders" /> {t['cta.configure']}</a>
+    </div>
+    <div class="reveal"><CompareTable lang={lang} /></div>
+  </div>
+</section>
+
+<style>
+  .from { margin-top: 18px; color: rgb(250 247 241 / 0.75); font-weight: 600; }
+  .from span { color: var(--ochre-400); font-size: 1.3rem; font-weight: 800; }
+  .models-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 1100px) { .models-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .models-grid { grid-template-columns: 1fr; } }
+</style>

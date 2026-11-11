@@ -1,0 +1,50 @@
+---
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { products } from '../data/products';
+import { ui, url, type Lang } from '../i18n/ui';
+
+interface Post { slug: string; title: string; date: string; description: string; html: string }
+interface Props { lang: Lang; post: Post }
+const { lang, post } = Astro.props;
+const t = ui[lang];
+const date = new Date(post.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+const picks = [products[3], products[1], products[5]];
+---
+<PageHero lang={lang} kicker={date} title={post.title} lead={post.description} image="/images/products/prime-400/ext-03-sm.webp"
+  crumbs={[{ label: t['nav.blog'], href: url('tr', 'blog') }, { label: post.title }]} />
+
+<section class="section section--tight">
+  <div class="container post-grid">
+    <article class="prose" set:html={post.html} />
+    <aside class="post-side">
+      <div class="side-card">
+        <p class="kicker">{t['band.kicker']}</p>
+        <p class="side-title">{t['band.title']}</p>
+        <a href={url(lang, 'configure')} class="btn btn--primary btn--block"><Icon name="sliders" /> {t['cta.configure']}</a>
+        <a href={url(lang, 'models')} class="btn btn--ghost btn--block">{t['cta.explore']}</a>
+      </div>
+      <a href={url('tr', 'blog')} class="link-arrow back"><Icon name="arrow-left" /> {t['cta.backToBlog']}</a>
+    </aside>
+  </div>
+</section>
+
+<section class="section section--sand">
+  <div class="container">
+    <div class="section-head reveal"><span class="kicker">{t['models.kicker']}</span><h2 class="h2">{t['models.title']}</h2></div>
+    <div class="grid rel">{picks.map((p, i) => <ProductCard p={p} lang={lang} delay={i} />)}</div>
+  </div>
+</section>
+
+<style>
+  .post-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: clamp(32px, 5vw, 72px); align-items: start; }
+  .post-side { position: sticky; top: calc(var(--header-h) + 24px); display: grid; gap: 18px; }
+  .side-card { padding: 24px; border-radius: var(--radius-lg); background: var(--forest-900); color: var(--sand-50); display: grid; gap: 10px; }
+  .side-card .kicker { color: var(--ochre-400); margin: 0; }
+  .side-title { font-size: 1.3rem; font-weight: 800; line-height: 1.25; margin-bottom: 8px; }
+  .side-card .btn--ghost { color: var(--sand-50); }
+  .rel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 1000px) { .post-grid { grid-template-columns: 1fr; } .post-side { position: static; } .rel { grid-template-columns: 1fr 1fr; } .rel > :global(:nth-child(3)) { display: none; } }
+  @media (max-width: 640px) { .rel { grid-template-columns: 1fr; } }
+</style>

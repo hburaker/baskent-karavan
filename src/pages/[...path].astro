@@ -1,0 +1,137 @@
+---
+// Tüm sayfalar bu tek dinamik rotadan üretilir (4 dil × sayfalar + blog).
+// Adres yapısı src/i18n/ui.ts içindeki `routes` tablosundan gelir.
+import Layout from '../layouts/Layout.astro';
+import Home from '../views/Home.astro';
+import Models from '../views/Models.astro';
+import Product from '../views/Product.astro';
+import Configure from '../views/Configure.astro';
+import Events from '../views/Events.astro';
+import Faq from '../views/Faq.astro';
+import Contact from '../views/Contact.astro';
+import Blog from '../views/Blog.astro';
+import BlogPost from '../views/BlogPost.astro';
+import Privacy from '../views/Privacy.astro';
+import posts from '../data/blog.json';
+import legacy from '../../seo/legacy-wordpress.json';
+import { products, img } from '../data/products';
+import { site } from '../data/site';
+import { langs, ui, url, productUrl, postUrl, formatPrice, type Lang, type RouteKey } from '../i18n/ui';
+
+type View = RouteKey | 'product' | 'post';
+interface Entry { lang: Lang; view: View; slug?: string; alternates: Partial<Record<Lang, string>> }
+
+export function getStaticPaths() {
+  const toParam = (href: string) => href.replace(/^\/|\/$/g, '') || undefined;
+  const out: { params: { path: string | undefined }; props: Entry }[] = [];
+  const pages: RouteKey[] = ['home', 'models', 'configure', 'events', 'faq', 'contact', 'privacy'];
+
+  for (const key of pages) {
+    const alternates = Object.fromEntries(langs.map((l) => [l, url(l, key)]));
+    for (const lang of langs) out.push({ params: { path: toParam(url(lang, key)) }, props: { lang, view: key, alternates } });
+  }
+  for (const p of products) {
+    const alternates = Object.fromEntries(langs.map((l) => [l, productUrl(l, p.slug)]));
+    for (const lang of langs) out.push({ params: { path: toParam(productUrl(lang, p.slug)) }, props: { lang, view: 'product', slug: p.slug, alternates } });
+  }
+  // Blog yalnızca Türkçe (eski sitedeki adreslerle aynı)
+  out.push({ params: { path: 'blog' }, props: { lang: 'tr', view: 'blog', alternates: { tr: '/blog/' } } });
+  for (const post of posts) out.push({ params: { path: post.slug }, props: { lang: 'tr', view: 'post', slug: post.slug, alternates: { tr: postUrl(post.slug) } } });
+  return out;
+}
+
+const { lang, view, slug, alternates } = Astro.props as Entry;
+const t = ui[lang];
+const product = view === 'product' ? products.find((p) => p.slug === slug)! : undefined;
+const post = view === 'post' ? posts.find((p) => p.slug === slug)! : undefined;
+
+const meta: Record<View, { title?: string; description?: string; image?: string }> = {
+  home: {},
+  models: { title: t['nav.models'], description: `${t['models.title']}. ${t['models.sub']}`, image: img('hera-380', 'ext', 2) },
+  configure: { title: t['cfg.title'], description: t['band.sub'], image: img('prime-540', 'int', 1) },
+  events: { title: t['nav.events'], description: t['more.events.d'], image: '/images/events/camp-karavan-fuar.webp' },
+  faq: { title: t['faq.kicker'], description: `${t['faq.a2']}` },
+  contact: { title: t['nav.contact'], description: `${site.address.full} · ${site.phones.map((p) => p.display).join(' · ')}` },
+  privacy: { title: t['privacy.title'] },
+  blog: { title: t['blog.title'], description: t['blog.sub'] },
+  product: product
+    ? {
+        title: product.name,
+        description: `${product.name}: ${product.tagline[lang]} ${formatPrice(product.price, lang)} ${t['price.vat']}.`,
+        image: img(product.slug, 'ext', product.hero),
+      }
+    : {},
+  post: post ? { title: post.title, description: post.description } : {},
+};
+
+// SEO: Türkçe sayfalarda eski WordPress sitesindeki <title> ve meta description birebir korunur
+// (kaynak: seo/legacy-wordpress.json). Ana sayfa hariç — orada marka + anahtar kelimeli yeni başlık kullanılır.
+const path = Astro.url.pathname;
+const old = (legacy.seo as Record<string, { title?: string; desc?: string }>)[path];
+if (lang === 'tr' && view !== 'home' && old) {
+  if (old.title) meta[view].title = old.title.replace(/\s*\|\s*Başkent Karavan$/, '');
+  if (old.desc) meta[view].description = old.desc;
+}
+
+// Breadcrumb (Ana sayfa > Bölüm > Sayfa)
+const crumbs: { name: string; url: string }[] = [];
+if (view === 'product' && product) crumbs.push({ name: t['nav.models'], url: url(lang, 'models') }, { name: product.name, url: productUrl(lang, product.slug) });
+else if (view === 'post' && post) crumbs.push({ name: t['nav.blog'], url: url('tr', 'blog') }, { name: post.title, url: postUrl(post.slug) });
+else if (view !== 'home') crumbs.push({ name: meta[view].title ?? '', url: path });
+
+const pageUrl = new URL(path, site.url).href;
+const schema = product
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      '@id': `${pageUrl}#product`,
+      name: `Başkent Karavan ${product.name}`,
+      brand: { '@type': 'Brand', name: 'Başkent Karavan' },
+      manufacturer: { '@id': `${site.url}/#org` },
+      category: lang === 'tr' ? 'Çekme Karavan' : 'Travel Trailer',
+      description: product.tagline[lang],
+      image: Array.from({ length: Math.min(product.ext, 4) }, (_, i) => new URL(img(product.slug, 'ext', i + 1), site.url).href),
+      offers: { '@type': 'Offer', price: product.price, priceCurrency: 'TRY', availability: 'https://schema.org/InStock', url: pageUrl, seller: { '@id': `${site.url}/#org` } },
+    }
+  : post
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        '@id': `${pageUrl}#article`,
+        headline: post.title,
+        description: post.description,
+        datePublished: post.date,
+        dateModified: post.date,
+        inLanguage: 'tr-TR',
+        image: new URL(post.html.match(/<img[^>]*src="([^"]+)"/)?.[1] ?? img('prime-400', 'ext', 3), site.url).href,
+        author: { '@id': `${site.url}/#org` },
+        publisher: { '@id': `${site.url}/#org` },
+        mainEntityOfPage: { '@id': `${pageUrl}#webpage` },
+      }
+    : view === 'faq'
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: ([1, 2, 3, 4, 5, 6] as const).map((n) => ({
+            '@type': 'Question',
+            name: t[`faq.q${n}`],
+            acceptedAnswer: { '@type': 'Answer', text: t[`faq.a${n}`] },
+          })),
+        }
+      : undefined;
+
+const pageType = view === 'blog' || view === 'models' ? 'CollectionPage' : view === 'contact' ? 'ContactPage' : 'WebPage';
+const waText = product ? t['wa.product'].replace('{model}', product.name) : undefined;
+---
+<Layout lang={lang} {...meta[view]} alternates={alternates} current={view} transparentHeader={view === 'home' || view !== 'product'} waText={waText} schema={schema} breadcrumbs={crumbs} pageType={pageType} ogType={view === 'post' ? 'article' : 'website'}>
+  {view === 'home' && <Home lang={lang} />}
+  {view === 'models' && <Models lang={lang} />}
+  {view === 'product' && product && <Product lang={lang} p={product} />}
+  {view === 'configure' && <Configure lang={lang} />}
+  {view === 'events' && <Events lang={lang} />}
+  {view === 'faq' && <Faq lang={lang} />}
+  {view === 'contact' && <Contact lang={lang} />}
+  {view === 'privacy' && <Privacy lang={lang} />}
+  {view === 'blog' && <Blog lang={lang} />}
+  {view === 'post' && post && <BlogPost lang={lang} post={post} />}
+</Layout>

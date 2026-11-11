@@ -1,0 +1,91 @@
+---
+import Icon from './Icon.astro';
+import { site, waLink } from '../data/site';
+import { ui, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang; heading?: boolean }
+const { lang, heading = true } = Astro.props;
+const t = ui[lang];
+---
+<section class="section contact" id="iletisim">
+  <div class="container">
+    {heading && (
+      <div class="section-head reveal">
+        <span class="kicker">{t['contact.kicker']}</span>
+        <h2 class="h2">{t['contact.title']}</h2>
+        <p class="lead">{t['contact.sub']}</p>
+      </div>
+    )}
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <div class="ci">
+          <span class="ci-icon"><Icon name="map-pin" /></span>
+          <div>
+            <p class="ci-label">{t['contact.address']}</p>
+            <p class="ci-value">{site.address.full}</p>
+            <p class="ci-sub">{site.legalName}</p>
+            <a href={site.directionsUrl} target="_blank" rel="noopener" class="link-arrow">{t['cta.directions']} <Icon name="arrow-up-right" /></a>
+          </div>
+        </div>
+        <div class="ci">
+          <span class="ci-icon"><Icon name="phone" /></span>
+          <div>
+            <p class="ci-label">{t['contact.phones']}</p>
+            {site.phones.map((p) => (
+              <p class="ci-value ci-phone">
+                <a href={`tel:${p.tel}`}>{p.display}</a>
+                <span class="ci-tag">{p.label === 'center' ? t['contact.center'] : t['contact.ankara']}</span>
+                {p.whatsapp && <a class="ci-wa" href={waLink(t['wa.generic'])} target="_blank" rel="noopener" aria-label="WhatsApp"><Icon name="whatsapp" size={18} /></a>}
+              </p>
+            ))}
+          </div>
+        </div>
+        <div class="ci">
+          <span class="ci-icon"><Icon name="clock" /></span>
+          <div>
+            <p class="ci-label">{t['contact.hours']}</p>
+            <dl class="hours">
+              <dt>{t['contact.weekdays']}</dt><dd>08:30 – 18:00</dd>
+              <dt>{t['contact.saturday']}</dt><dd>09:00 – 16:00</dd>
+              <dt>{t['contact.sunday']}</dt><dd>{t['contact.closed']}</dd>
+            </dl>
+          </div>
+        </div>
+        <div class="ci">
+          <span class="ci-icon"><Icon name="mail" /></span>
+          <div>
+            <p class="ci-label">{t['contact.email']}</p>
+            <p class="ci-value"><a href={`mailto:${site.email}`}>{site.email}</a></p>
+          </div>
+        </div>
+        <div class="btn-row">
+          <a href={waLink(t['wa.generic'])} class="btn btn--wa" target="_blank" rel="noopener"><Icon name="whatsapp" /> {t['cta.whatsapp']}</a>
+          <a href={`tel:${site.phones[2].tel}`} class="btn btn--dark"><Icon name="phone" /> {t['cta.call']}</a>
+        </div>
+      </div>
+      <div class="map reveal" data-delay="1">
+        <iframe src={site.mapsEmbed} title={t['contact.mapTitle']} loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(24px, 4vw, 56px); align-items: stretch; }
+  .contact-info { display: grid; gap: 22px; align-content: start; }
+  .ci { display: grid; grid-template-columns: 52px 1fr; gap: 16px; }
+  .ci-icon { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: var(--forest-900); color: var(--ochre-400); }
+  .ci-label { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 2px 0 6px; }
+  .ci-value { font-weight: 700; font-size: 1.08rem; margin: 0 0 4px; }
+  .ci-value a:hover { color: var(--ochre-700); }
+  .ci-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
+  .ci-phone { display: flex; align-items: center; gap: 10px; }
+  .ci-tag { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: var(--sand-200); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .ci-wa { color: var(--wa-dark); display: inline-grid; }
+  .hours { display: grid; grid-template-columns: auto auto; gap: 4px 20px; margin: 0; justify-content: start; }
+  .hours dt { color: var(--muted); }
+  .hours dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .map { border-radius: var(--radius-lg); overflow: hidden; min-height: 420px; background: var(--sand-200); box-shadow: var(--shadow); }
+  .map iframe { width: 100%; height: 100%; min-height: 420px; border: 0; }
+  @media (max-width: 900px) { .contact-grid { grid-template-columns: 1fr; } .map, .map iframe { min-height: 340px; } }
+</style>

@@ -1,0 +1,18 @@
+---
+import PageHero from '../components/PageHero.astro';
+import policy from '../data/cerez-politikasi.html?raw';
+import { ui, type Lang } from '../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+const note: Record<Lang, string> = {
+  tr: '',
+  en: 'This policy is published in Turkish.',
+  de: 'Diese Richtlinie wird auf Türkisch veröffentlicht.',
+  ru: 'Политика опубликована на турецком языке.',
+};
+---
+<PageHero lang={lang} title={t['privacy.title']} crumbs={[{ label: t['privacy.title'] }]} lead={note[lang] || undefined} />
+<section class="section section--tight">
+  <div class="container"><article class="prose" lang="tr" set:html={policy} /></div>
+</section>

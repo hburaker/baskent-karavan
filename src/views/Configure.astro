@@ -1,0 +1,14 @@
+---
+import PageHero from '../components/PageHero.astro';
+import Configurator from '../components/Configurator.astro';
+import { ui, type Lang } from '../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+---
+<PageHero lang={lang} kicker={t['cfg.kicker']} title={t['cfg.title']} lead={t['cfg.sub']} image="/images/products/prime-540/int-01-sm.webp" crumbs={[{ label: t['nav.configure'] }]} />
+<section class="section section--sand">
+  <div class="container">
+    <Configurator lang={lang} initial="prime-400" syncUrl />
+  </div>
+</section>

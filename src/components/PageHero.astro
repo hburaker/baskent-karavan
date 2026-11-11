@@ -1,0 +1,22 @@
+---
+import { ui, url, type Lang } from '../i18n/ui';
+interface Props { lang: Lang; kicker?: string; title: string; lead?: string; image?: string; crumbs?: { label: string; href?: string }[] }
+const { lang, kicker, title, lead, image = '/images/products/prime-400/ext-01-sm.webp', crumbs = [] } = Astro.props;
+const t = ui[lang];
+---
+<section class="page-hero" style={`--bg-img: url('${image}')`}>
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href={url(lang, 'home')}>{t['nav.home']}</a>
+      {crumbs.map((c) => (<><span aria-hidden="true">/</span>{c.href ? <a href={c.href}>{c.label}</a> : <span>{c.label}</span>}</>))}
+    </nav>
+    {kicker && <span class="kicker">{kicker}</span>}
+    <h1 class="h2">{title}</h1>
+    {lead && <p class="lead">{lead}</p>}
+    <slot />
+  </div>
+</section>
+<style>
+  .page-hero .kicker { color: var(--ochre-400); }
+  h1 { font-size: clamp(2.2rem, 5vw, 4rem); max-width: 900px; }
+</style>

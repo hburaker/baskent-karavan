@@ -1,0 +1,115 @@
+---
+import Icon from './Icon.astro';
+import { site, waLink } from '../data/site';
+import { products } from '../data/products';
+import { ui, url, productUrl, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+const year = new Date().getFullYear();
+---
+<footer class="footer">
+  <div class="footer-cta">
+    <div class="container footer-cta-inner">
+      <div>
+        <p class="accent-script slogan">{site.slogan}</p>
+        <h2 class="h2">{t['band.title']}</h2>
+      </div>
+      <div class="btn-row">
+        <a href={url(lang, 'configure')} class="btn btn--primary btn--lg"><Icon name="sliders" /> {t['cta.configure']}</a>
+        <a href={waLink(t['wa.generic'])} class="btn btn--ghost-light btn--lg" target="_blank" rel="noopener"><Icon name="whatsapp" /> {t['cta.whatsapp']}</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <a href={url(lang, 'home')} class="f-brand">
+        <img src="/images/misc/logo-icon.png" alt="Başkent Karavan" width="84" height="84" loading="lazy" />
+      </a>
+      <p class="muted">{t['footer.tagline']}</p>
+      <p class="f-legal">{site.legalName}</p>
+      <div class="social">
+        <a href={site.social.facebook} target="_blank" rel="noopener" aria-label="Facebook"><Icon name="facebook" /></a>
+        <a href={site.social.youtube} target="_blank" rel="noopener" aria-label="YouTube"><Icon name="youtube" /></a>
+        <a href={waLink(t['wa.generic'])} target="_blank" rel="noopener" aria-label="WhatsApp"><Icon name="whatsapp" /></a>
+      </div>
+    </div>
+
+    <div>
+      <p class="f-title">{t['footer.models']}</p>
+      <ul>
+        {products.map((p) => <li><a href={productUrl(lang, p.slug)}>{p.name}</a></li>)}
+      </ul>
+    </div>
+
+    <div>
+      <p class="f-title">{t['footer.links']}</p>
+      <ul>
+        <li><a href={url(lang, 'home', '#hakkimizda')}>{t['nav.about']}</a></li>
+        <li><a href={url(lang, 'configure')}>{t['nav.configure']}</a></li>
+        <li><a href={url(lang, 'events')}>{t['nav.events']}</a></li>
+        <li><a href={url(lang, 'faq')}>{t['nav.faq']}</a></li>
+        <li><a href={url('tr', 'blog')} hreflang="tr">{t['nav.blog']}{lang !== 'tr' && ' (TR)'}</a></li>
+        <li><a href={url(lang, 'contact')}>{t['nav.contact']}</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <p class="f-title">{t['footer.contact']}</p>
+      <ul class="f-contact">
+        <li><Icon name="map-pin" /><a href={site.mapsUrl} target="_blank" rel="noopener">{site.address.full}</a></li>
+        {site.phones.map((p) => (
+          <li><Icon name="phone" /><a href={`tel:${p.tel}`}>{p.display}</a> <span class="muted">· {p.label === 'center' ? t['contact.center'] : t['contact.ankara']}</span></li>
+        ))}
+        <li><Icon name="mail" /><a href={`mailto:${site.email}`}>{site.email}</a></li>
+        <li><Icon name="clock" /><span>{t['contact.weekdays']} 08:30–18:00<br />{t['contact.saturday']} 09:00–16:00</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container footer-bottom">
+    <p>© {year} {site.name}. {t['footer.rights']}</p>
+    <a href={url(lang, 'privacy')}>{t['privacy.title']}</a>
+  </div>
+</footer>
+
+<style>
+  .footer { background: var(--forest-950); color: rgb(243 237 226 / 0.82); font-size: 0.95rem; }
+  .footer .muted { color: rgb(243 237 226 / 0.55); }
+  .footer-cta { border-bottom: 1px solid rgb(255 255 255 / 0.08); padding: clamp(56px, 7vw, 96px) 0; position: relative; overflow: hidden; }
+  .footer-cta::before {
+    content: ''; position: absolute; inset: 0; background: url('/images/products/prime-400/ext-01-sm.webp') center/cover; opacity: 0.12; filter: grayscale(0.3);
+  }
+  .footer-cta-inner { position: relative; display: flex; justify-content: space-between; align-items: end; gap: 32px; flex-wrap: wrap; }
+  .footer-cta h2 { color: var(--sand-50); max-width: 640px; margin: 0; }
+  .slogan { color: var(--ochre-400); font-size: 1.5rem; margin-bottom: 8px; }
+
+  .footer-grid { display: grid; grid-template-columns: 1.3fr 0.8fr 0.9fr 1.4fr; gap: 40px; padding: 64px 0 40px; }
+  .f-brand img { width: 84px; height: 84px; border-radius: 50%; background: #fff; margin-bottom: 16px; }
+  .f-legal { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.04em; color: rgb(243 237 226 / 0.5); }
+  .f-title { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ochre-400); margin-bottom: 16px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  ul a:hover { color: var(--ochre-300); }
+  .f-contact li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start; }
+  .f-contact li > :global(svg) { width: 18px; height: 18px; color: var(--ochre-400); margin-top: 3px; }
+  .f-contact li .muted { grid-column: 2; margin-top: -8px; font-size: 0.82rem; }
+  .social { display: flex; gap: 10px; margin-top: 18px; }
+  .social a { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgb(255 255 255 / 0.15); transition: background 0.2s, color 0.2s, border-color 0.2s; }
+  .social a:hover { background: var(--ochre-400); color: var(--ink); border-color: var(--ochre-400); }
+  .social :global(svg) { width: 19px; height: 19px; }
+  .footer-bottom { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 22px 0 calc(22px + env(safe-area-inset-bottom)); border-top: 1px solid rgb(255 255 255 / 0.08); font-size: 0.85rem; color: rgb(243 237 226 / 0.5); }
+  .footer-bottom p { margin: 0; }
+  .footer-bottom a:hover { color: var(--ochre-300); }
+
+  @media (max-width: 960px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 560px) {
+    .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+    .footer-cta .btn-row, .footer-cta .btn { width: 100%; }
+    .footer-bottom { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+  }
+</style>

@@ -1,0 +1,46 @@
+---
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import posts from '../data/blog.json';
+import { ui, postUrl, type Lang } from '../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+const fallback = ['/images/products/prime-400/ext-03-sm.webp', '/images/products/hera-380/int-01-sm.webp', '/images/products/prime-540/ext-05-sm.webp', '/images/products/pixel-260/ext-02-sm.webp'];
+const list = posts.map((p, i) => ({
+  ...p,
+  cover: p.html.match(/<img[^>]*src="([^"]+)"/)?.[1] ?? fallback[i % fallback.length],
+  excerpt: p.description || p.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) + '…',
+  dateText: new Date(p.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
+}));
+---
+<PageHero lang={lang} kicker={t['blog.kicker']} title={t['blog.title']} lead={t['blog.sub']} image="/images/blog/karavan-ev-1.webp" crumbs={[{ label: t['nav.blog'] }]} />
+<section class="section">
+  <div class="container grid posts">
+    {list.map((p, i) => (
+      <a href={postUrl(p.slug)} class="post reveal" data-delay={i % 3}>
+        <span class="post-img"><img src={p.cover} alt="" width="720" height="405" loading="lazy" /></span>
+        <span class="post-body">
+          <time datetime={p.date}>{p.dateText}</time>
+          <b>{p.title}</b>
+          <span class="muted">{p.excerpt}</span>
+          <span class="link-arrow">{t['cta.readMore']} <Icon name="arrow-right" /></span>
+        </span>
+      </a>
+    ))}
+  </div>
+</section>
+<style>
+  .posts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .post { display: flex; flex-direction: column; border-radius: var(--radius-lg); overflow: hidden; background: var(--white); border: 1px solid var(--line); transition: transform 0.35s var(--ease), box-shadow 0.35s; }
+  .post:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .post-img { aspect-ratio: 16/9; overflow: hidden; background: var(--sand-200); }
+  .post-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
+  .post:hover img { transform: scale(1.06); }
+  .post-body { display: grid; gap: 8px; padding: 20px 22px 24px; }
+  .post-body time { font-size: 0.8rem; font-weight: 700; color: var(--ochre-700); text-transform: uppercase; letter-spacing: 0.08em; }
+  .post-body b { font-size: 1.25rem; line-height: 1.25; letter-spacing: -0.02em; }
+  .post-body .muted { font-size: 0.94rem; }
+  @media (max-width: 1000px) { .posts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .posts { grid-template-columns: 1fr; } }
+</style>

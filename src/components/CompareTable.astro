@@ -1,0 +1,62 @@
+---
+import Icon from './Icon.astro';
+import { products } from '../data/products';
+import { ui, productUrl, formatPrice, type Lang } from '../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+const yes = (v: boolean) => v;
+const rows: { label: string; get: (p: (typeof products)[number]) => string | boolean }[] = [
+  { label: t['spec.price'], get: (p) => formatPrice(p.price, lang) },
+  { label: t['spec.axle'], get: (p) => p.specs.axle },
+  { label: t['spec.brakes'], get: (p) => yes(p.specs.brakes) },
+  { label: t['spec.water'], get: (p) => `${p.specs.water} L` },
+  { label: t['spec.wheel'], get: (p) => p.specs.wheel },
+  { label: t['spec.fridge'], get: (p) => (p.specs.fridge ? `${p.specs.fridge} L` : false) },
+  { label: t['spec.solar'], get: (p) => (p.specs.solar ? '2 × 205 W' : false) },
+  { label: t['spec.battery'], get: (p) => (p.specs.batteries ? `${p.specs.batteries} ×` : false) },
+  { label: t['spec.heater'], get: (p) => yes(p.specs.heater) },
+  { label: t['spec.awning'], get: (p) => yes(p.specs.awning) },
+  { label: t['spec.bed'], get: (p) => (p.specs.fixedBed ? t['spec.fixedBed'] : t['spec.convertible']) },
+  { label: t['spec.bunk'], get: (p) => (p.specs.bunk === 'none' ? false : p.specs.bunk === 'double' ? t['spec.bunkDouble'] : t['spec.bunkFolding']) },
+];
+---
+<div class="cmp-wrap">
+  <table class="cmp">
+    <thead>
+      <tr>
+        <th scope="col"></th>
+        {products.map((p) => (
+          <th scope="col"><a href={productUrl(lang, p.slug)}><span>{p.series}</span>{p.name}</a></th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr>
+          <th scope="row">{r.label}</th>
+          {products.map((p) => {
+            const v = r.get(p);
+            return <td>{v === true ? <span class="yes"><Icon name="check" size={18} /></span> : v === false ? <span class="no">—</span> : v}</td>;
+          })}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<style>
+  .cmp-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--line); background: var(--white); box-shadow: var(--shadow-sm); -webkit-overflow-scrolling: touch; }
+  .cmp { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 0.94rem; }
+  th, td { padding: 14px 16px; text-align: center; border-bottom: 1px solid var(--line); }
+  tbody tr:last-child > * { border-bottom: 0; }
+  thead th { background: var(--forest-900); color: var(--sand-50); font-size: 1.05rem; font-weight: 800; vertical-align: bottom; }
+  thead th a { display: grid; }
+  thead th a:hover { color: var(--ochre-300); }
+  thead th span { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ochre-400); }
+  tbody th { text-align: left; font-weight: 700; color: var(--muted); white-space: nowrap; position: sticky; left: 0; background: var(--white); }
+  thead th:first-child { position: sticky; left: 0; z-index: 1; }
+  tbody tr:hover td, tbody tr:hover th { background: var(--sand-50); }
+  tbody tr:first-child td { font-weight: 800; color: var(--forest-700); }
+  .yes { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #e7f4ec; color: #17803d; }
+  .no { color: var(--sand-300); font-weight: 800; }
+</style>

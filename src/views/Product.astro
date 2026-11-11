@@ -1,0 +1,279 @@
+---
+import Icon from '../components/Icon.astro';
+import ProductCard from '../components/ProductCard.astro';
+import Configurator from '../components/Configurator.astro';
+import { products, gallery, img, type Product } from '../data/products';
+import { site, waLink } from '../data/site';
+import { tEquip } from '../i18n/equipment';
+import { ui, url, formatPrice, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang; p: Product }
+const { lang, p } = Astro.props;
+const t = ui[lang];
+const ext = gallery(p, 'ext');
+const int = gallery(p, 'int');
+const viewer = [...ext.map((g) => ({ ...g, kind: 'ext' })), ...int.map((g) => ({ ...g, kind: 'int' }))];
+const idx = products.findIndex((x) => x.slug === p.slug);
+const related = [products[(idx + 1) % products.length], products[(idx + products.length - 1) % products.length], products[(idx + 2) % products.length]];
+
+const facts = [
+  p.capacity && { icon: 'users', label: t['product.persons'], value: p.capacity },
+  { icon: 'brake', label: t['spec.axle'], value: p.specs.axle },
+  { icon: 'droplet', label: t['spec.water'], value: `${p.specs.water} L` },
+  { icon: 'wheel', label: t['spec.wheel'], value: p.specs.wheel },
+  p.specs.fridge && { icon: 'fridge', label: t['spec.fridge'], value: `${p.specs.fridge} L` },
+  p.specs.solar && { icon: 'sun', label: t['spec.solar'], value: '2 × 205 W' },
+].filter(Boolean) as { icon: string; label: string; value: string }[];
+---
+<section class="p-hero">
+  <div class="container p-hero-grid">
+    <div class="viewer" data-viewer>
+      <div class="viewer-main">
+        {viewer.map((g, i) => (
+          <img src={g.full} alt={`${p.name} — ${g.kind === 'ext' ? t['product.exterior'] : t['product.interior']} ${i + 1}`}
+            class:list={{ active: i === 0 }} data-v={i} width="1920" height="1080" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
+        ))}
+        <button type="button" class="v-nav v-prev" data-vprev aria-label={t['lightbox.prev']}><Icon name="arrow-left" /></button>
+        <button type="button" class="v-nav v-next" data-vnext aria-label={t['lightbox.next']}><Icon name="arrow-right" /></button>
+        <button type="button" class="v-zoom" data-vzoom><Icon name="expand" size={18} /> <span data-vcount>1 / {viewer.length}</span></button>
+      </div>
+      <div class="viewer-tabs">
+        <button type="button" class="active" data-vtab="0">{t['product.exterior']} <small>{ext.length}</small></button>
+        <button type="button" data-vtab={ext.length}>{t['product.interior']} <small>{int.length}</small></button>
+      </div>
+      <div class="viewer-thumbs" data-vthumbs>
+        {viewer.map((g, i) => (
+          <button type="button" class:list={{ active: i === 0 }} data-vt={i} aria-label={`${i + 1}`}>
+            <img src={g.thumb} alt="" width="160" height="90" loading="lazy" />
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div class="p-info">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href={url(lang, 'home')}>{t['nav.home']}</a> / <a href={url(lang, 'models')}>{t['nav.models']}</a> / <span>{p.name}</span>
+      </nav>
+      <span class="badge">{p.series}</span>
+      <h1>{p.name}</h1>
+      <p class="accent-script p-slogan">{site.slogan}</p>
+      <p class="p-tag">{p.tagline[lang]}</p>
+
+      <div class="p-price">
+        <strong>{formatPrice(p.price, lang)}</strong>
+        <span>{t['price.vat']}</span>
+      </div>
+
+      <ul class="facts">
+        {facts.map((f) => (
+          <li><Icon name={f.icon} /><span><small>{f.label}</small>{f.value}</span></li>
+        ))}
+      </ul>
+
+      <div class="btn-row p-cta">
+        <a href="#yapilandir" class="btn btn--primary btn--lg"><Icon name="sliders" /> {t['cta.calc']}</a>
+        <a href={waLink(t['wa.product'].replace('{model}', p.name))} class="btn btn--wa btn--lg" target="_blank" rel="noopener"><Icon name="whatsapp" /> {t['cta.whatsapp']}</a>
+      </div>
+      <a href={`tel:${site.phones[0].tel}`} class="p-phone"><Icon name="phone" size={18} /> {site.phones[0].display}</a>
+    </div>
+  </div>
+</section>
+
+<!-- Galeri (orijinal sitedeki Dış Tasarım / İç Tasarım bölümleri) -->
+<section class="section section--tight" id="galeri">
+  <div class="container">
+    <div class="gal-head reveal">
+      <h2 class="h3">{p.name} {t['product.exterior']}</h2>
+      <span class="muted">{ext.length} {t['product.photos']}</span>
+    </div>
+    <div class="gal">
+      {ext.map((g, i) => (
+        <a href={g.full} data-lb={`ext-${p.slug}`} data-caption={`${p.name} · ${t['product.exterior']}`} data-gi={i}>
+          <img src={g.thumb} alt={`${p.name} ${t['product.exterior']} ${i + 1}`} width="720" height="405" loading="lazy" />
+        </a>
+      ))}
+    </div>
+
+    <div class="gal-head reveal">
+      <h2 class="h3">{p.name} {t['product.interior']}</h2>
+      <span class="muted">{int.length} {t['product.photos']}</span>
+    </div>
+    <div class="gal">
+      {int.map((g, i) => (
+        <a href={g.full} data-lb={`int-${p.slug}`} data-caption={`${p.name} · ${t['product.interior']}`} data-gi={ext.length + i}>
+          <img src={g.thumb} alt={`${p.name} ${t['product.interior']} ${i + 1}`} width="720" height="405" loading="lazy" />
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<!-- Standart donanımlar -->
+<section class="section section--dark" id="donanim">
+  <div class="container equip-grid">
+    <div class="reveal">
+      <span class="kicker">{p.name}</span>
+      <h2 class="h2">{t['product.equipment']}</h2>
+      <a href="#yapilandir" class="link-arrow eq-link">{t['cta.calc']} <Icon name="arrow-right" /></a>
+      {p.trademark && (
+        <a href={`/images/docs/${p.trademark}.webp`} data-lb="tm" data-caption={`${p.series} — ${t['product.trademark']}`} class="tm">
+          <img src={`/images/docs/${p.trademark}-sm.webp`} alt={t['product.trademark']} width="120" height="170" loading="lazy" />
+          <span><small>{p.series.toUpperCase()}</small>{t['product.trademark']}</span>
+          <Icon name="expand" size={18} />
+        </a>
+      )}
+    </div>
+    <ul class="equip reveal" data-delay="1">
+      {p.equipment.map((e) => <li><span class="ck"><Icon name="check" size={16} /></span>{tEquip(e, lang)}</li>)}
+    </ul>
+  </div>
+</section>
+
+<!-- Yapılandırıcı -->
+<section class="section section--sand" id="yapilandir">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">{t['cfg.kicker']}</span>
+      <h2 class="h2">{t['product.configure']}</h2>
+      <p class="lead">{t['product.configureSub']}</p>
+    </div>
+    <Configurator lang={lang} initial={p.slug} />
+  </div>
+</section>
+
+<!-- Diğer modeller -->
+<section class="section">
+  <div class="container">
+    <div class="section-head section-head--split">
+      <div class="reveal">
+        <span class="kicker">{t['models.kicker']}</span>
+        <h2 class="h2">{t['product.others']}</h2>
+      </div>
+      <a href={url(lang, 'models')} class="btn btn--ghost reveal">{t['cta.viewAll']} <Icon name="arrow-right" /></a>
+    </div>
+    <div class="grid rel-grid">
+      {related.map((r, i) => <ProductCard p={r} lang={lang} delay={i} />)}
+    </div>
+  </div>
+</section>
+
+<script>
+  const v = document.querySelector<HTMLElement>('[data-viewer]');
+  if (v) {
+    const imgs = [...v.querySelectorAll<HTMLImageElement>('[data-v]')];
+    const thumbs = [...v.querySelectorAll<HTMLButtonElement>('[data-vt]')];
+    const tabs = [...v.querySelectorAll<HTMLButtonElement>('[data-vtab]')];
+    const count = v.querySelector<HTMLElement>('[data-vcount]')!;
+    const strip = v.querySelector<HTMLElement>('[data-vthumbs]')!;
+    const intStart = Number(tabs[1].dataset.vtab);
+    let i = 0;
+    const go = (n: number) => {
+      i = (n + imgs.length) % imgs.length;
+      imgs.forEach((im, k) => im.classList.toggle('active', k === i));
+      thumbs.forEach((t, k) => t.classList.toggle('active', k === i));
+      tabs[0].classList.toggle('active', i < intStart);
+      tabs[1].classList.toggle('active', i >= intStart);
+      count.textContent = `${i + 1} / ${imgs.length}`;
+      const th = thumbs[i];
+      strip.scrollTo({ left: th.offsetLeft - strip.clientWidth / 2 + th.clientWidth / 2, behavior: 'smooth' });
+      [imgs[(i + 1) % imgs.length]].forEach((x) => (x.loading = 'eager'));
+    };
+    thumbs.forEach((t) => t.addEventListener('click', () => go(Number(t.dataset.vt))));
+    tabs.forEach((t) => t.addEventListener('click', () => go(Number(t.dataset.vtab))));
+    v.querySelector('[data-vprev]')!.addEventListener('click', () => go(i - 1));
+    v.querySelector('[data-vnext]')!.addEventListener('click', () => go(i + 1));
+    const openLb = () => document.querySelector<HTMLAnchorElement>(`[data-gi="${i}"]`)?.click();
+    v.querySelector('[data-vzoom]')!.addEventListener('click', openLb);
+    imgs.forEach((im) => im.addEventListener('click', openLb));
+    let sx = 0;
+    const main = v.querySelector<HTMLElement>('.viewer-main')!;
+    main.addEventListener('touchstart', (e) => (sx = e.touches[0].clientX), { passive: true });
+    main.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - sx;
+      if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1));
+    });
+  }
+</script>
+
+<style>
+  .p-hero { padding: calc(var(--header-h) + 28px) 0 clamp(40px, 5vw, 72px); background: linear-gradient(180deg, var(--sand-100), var(--sand-50)); }
+  .p-hero-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
+
+  .viewer { min-width: 0; }
+  .viewer-main { position: relative; aspect-ratio: 16 / 10; border-radius: var(--radius-lg); overflow: hidden; background: var(--sand-200); box-shadow: var(--shadow); }
+  .viewer-main img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s ease; cursor: zoom-in; }
+  .viewer-main img.active { opacity: 1; }
+  .v-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 46px; height: 46px; border-radius: 50%; border: 0; background: rgb(255 255 255 / 0.9); color: var(--ink); display: grid; place-items: center; box-shadow: var(--shadow-sm); transition: background 0.2s; z-index: 1; }
+  .v-nav:hover { background: var(--ochre-400); }
+  .v-prev { left: 14px; }
+  .v-next { right: 14px; }
+  .v-zoom { position: absolute; right: 14px; bottom: 14px; z-index: 1; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 0; background: rgb(11 21 18 / 0.75); color: #fff; font-weight: 700; font-size: 0.85rem; font-variant-numeric: tabular-nums; backdrop-filter: blur(6px); }
+  .viewer-tabs { display: flex; gap: 8px; margin: 14px 0 10px; }
+  .viewer-tabs button { padding: 8px 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--white); font-weight: 700; font-size: 0.9rem; transition: all 0.2s; }
+  .viewer-tabs button small { color: var(--muted); margin-left: 4px; }
+  .viewer-tabs button.active { background: var(--forest-900); color: var(--sand-50); border-color: var(--forest-900); }
+  .viewer-tabs button.active small { color: var(--ochre-300); }
+  .viewer-thumbs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; scroll-snap-type: x proximity; }
+  .viewer-thumbs button { flex: none; width: 96px; aspect-ratio: 16/10; padding: 0; border-radius: 10px; overflow: hidden; border: 2px solid transparent; opacity: 0.6; transition: opacity 0.2s, border-color 0.2s; scroll-snap-align: center; background: var(--sand-200); }
+  .viewer-thumbs button:hover { opacity: 1; }
+  .viewer-thumbs button.active { opacity: 1; border-color: var(--ochre-500); }
+  .viewer-thumbs img { width: 100%; height: 100%; object-fit: cover; }
+
+  .p-info { position: sticky; top: calc(var(--header-h) + 24px); }
+  .crumbs { font-size: 0.85rem; color: var(--muted); margin-bottom: 18px; }
+  .crumbs a:hover { color: var(--ochre-700); }
+  .p-info h1 { font-size: clamp(2.6rem, 5vw, 4.2rem); margin: 14px 0 0; letter-spacing: -0.04em; }
+  .p-slogan { color: var(--clay); font-size: 1.3rem; margin: 4px 0 16px; }
+  .p-tag { font-size: 1.08rem; color: var(--muted); }
+  .p-price { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 18px 0; margin: 8px 0 18px; border-block: 1px solid var(--line); }
+  .p-price strong { font-size: clamp(2rem, 3.5vw, 2.6rem); font-weight: 800; letter-spacing: -0.03em; color: var(--forest-700); }
+  .p-price span { font-weight: 700; color: var(--muted); }
+  .facts { list-style: none; margin: 0 0 24px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .facts li { min-width: 0; display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: var(--white); border: 1px solid var(--line); font-weight: 800; }
+  .facts li > :global(svg) { width: 36px; height: 36px; padding: 8px; border-radius: 10px; background: var(--sand-100); color: var(--forest-700); flex: none; }
+  .facts small { display: block; font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .p-cta .btn { flex: 1; }
+  .p-phone { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-weight: 700; color: var(--muted); }
+  .p-phone:hover { color: var(--ochre-700); }
+
+  .gal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 16px; }
+  .gal-head:not(:first-child) { margin-top: 48px; }
+  .gal-head h2 { margin: 0; }
+  .gal { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .gal a { border-radius: 14px; overflow: hidden; aspect-ratio: 16/10; background: var(--sand-200); }
+  .gal a:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+  .gal img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s var(--ease); }
+  .gal a:hover img { transform: scale(1.07); }
+
+  .equip-grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(32px, 5vw, 72px); align-items: start; }
+  .equip { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 28px; }
+  .equip li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgb(255 255 255 / 0.08); color: rgb(243 237 226 / 0.9); }
+  .ck { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: rgb(232 173 69 / 0.15); color: var(--ochre-400); }
+  .tm { display: inline-grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: center; margin-top: 18px; padding: 10px 16px 10px 10px; border-radius: 16px; background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.12); transition: background 0.2s; }
+  .tm:hover { background: rgb(255 255 255 / 0.12); }
+  .tm img { width: 64px; height: 88px; object-fit: cover; object-position: top; border-radius: 8px; background: #fff; }
+  .tm span { display: grid; font-weight: 700; }
+  .tm small { color: var(--ochre-400); font-size: 0.72rem; letter-spacing: 0.14em; }
+
+  .rel-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  @media (max-width: 1000px) {
+    .p-hero-grid, .equip-grid { grid-template-columns: minmax(0, 1fr); }
+    .p-info { position: static; }
+    .rel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rel-grid > :global(:nth-child(3)) { display: none; }
+  }
+  @media (max-width: 640px) {
+    .p-hero { padding-top: calc(var(--header-h) + 12px); }
+    .viewer-main { border-radius: var(--radius); margin-inline: -4px; }
+    .v-nav { width: 40px; height: 40px; }
+    .gal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .equip { grid-template-columns: 1fr; }
+    .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .facts small { letter-spacing: 0.02em; overflow-wrap: anywhere; }
+    .facts li { padding: 10px; gap: 10px; font-size: 0.92rem; }
+    .p-cta .btn { width: 100%; flex: auto; }
+    .rel-grid { grid-template-columns: 1fr; }
+    .rel-grid > :global(:nth-child(n + 2)) { display: none; }
+  }
+</style>

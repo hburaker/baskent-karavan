@@ -1,0 +1,10 @@
+---
+import PageHero from '../components/PageHero.astro';
+import ContactBlock from '../components/ContactBlock.astro';
+import { ui, type Lang } from '../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+---
+<PageHero lang={lang} kicker={t['contact.centerName']} title={t['contact.title']} lead={t['contact.sub']} image="/images/products/prime-540/ext-02-sm.webp" crumbs={[{ label: t['nav.contact'] }]} />
+<ContactBlock lang={lang} heading={false} />

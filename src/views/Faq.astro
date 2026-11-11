@@ -1,0 +1,67 @@
+---
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import YouTube from '../components/YouTube.astro';
+import { ui, faqVideos, type Lang } from '../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+const qs = [1, 2, 3, 4, 5, 6] as const;
+---
+<PageHero lang={lang} kicker={t['faq.kicker']} title={t['faq.title']} image="/images/products/hera-380/int-02-sm.webp" crumbs={[{ label: t['nav.faq'] }]} />
+
+<section class="section">
+  <div class="container faq-grid">
+    <div class="faq-list">
+      {qs.map((n, i) => (
+        <details class="qa reveal" data-delay={i % 3} open={i === 0}>
+          <summary>{t[`faq.q${n}`]}<span class="pm"><Icon name="plus" size={18} /></span></summary>
+          <p>{t[`faq.a${n}`]}</p>
+        </details>
+      ))}
+    </div>
+    <aside class="faq-side reveal" data-delay="1">
+      <img src={lang === 'tr' ? '/images/misc/sss-banner.webp' : '/images/products/prime-400/int-02-sm.webp'} alt="" width="2000" height="1125" loading="lazy" />
+    </aside>
+  </div>
+</section>
+
+<section class="section section--sand" id="videolar">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">{t['video.kicker']}</span>
+      <h2 class="h2">{t['faq.videosTitle']}</h2>
+      <p class="lead">{t['faq.videosSub']}</p>
+    </div>
+    <div class="grid videos">
+      {faqVideos.map((v, i) => (
+        <div class="vid reveal" data-delay={i % 3}>
+          <YouTube id={v.id} title={v.title[lang]} label={t['video.play']} />
+          <p>{v.title[lang]}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: clamp(28px, 5vw, 64px); align-items: start; }
+  .faq-list { display: grid; gap: 12px; }
+  .qa { border-radius: var(--radius); background: var(--white); border: 1px solid var(--line); transition: box-shadow 0.25s; }
+  .qa[open] { box-shadow: var(--shadow); }
+  .qa summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 22px; font-weight: 800; font-size: 1.08rem; }
+  .qa summary::-webkit-details-marker { display: none; }
+  .pm { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--sand-100); transition: transform 0.3s var(--ease), background 0.2s; }
+  .qa[open] .pm { transform: rotate(45deg); background: var(--ochre-400); }
+  .qa p { padding: 0 22px 22px; margin: 0; color: var(--muted); }
+  .faq-side { position: sticky; top: calc(var(--header-h) + 24px); }
+  .faq-side img { border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+  .videos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .vid p { font-weight: 700; margin: 12px 4px 0; }
+  @media (max-width: 900px) {
+    .faq-grid { grid-template-columns: 1fr; }
+    .faq-side { display: none; }
+    .videos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) { .videos { grid-template-columns: 1fr; } }
+</style>

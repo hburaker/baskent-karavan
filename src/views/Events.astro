@@ -1,0 +1,78 @@
+---
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import YouTube from '../components/YouTube.astro';
+import { site } from '../data/site';
+import { ui, type Lang } from '../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+const past = [
+  { f: 'camp-karavan-fuar', k: 'events.e1' },
+  { f: 'ankara-karavan-etkinligi-2021', k: 'events.e2' },
+  { f: 'ankara-karavan-etkinlikleri-2021', k: 'events.e3' },
+] as const;
+---
+<PageHero lang={lang} kicker={t['events.kicker']} title={t['events.title']} image="/images/events/camp-karavan-fuar-sm.webp" crumbs={[{ label: t['nav.events'] }]} />
+
+<section class="section">
+  <div class="container">
+    <div class="upcoming reveal">
+      <span class="up-icon"><Icon name="calendar" /></span>
+      <div>
+        <h2 class="h3">{t['events.upcoming']}</h2>
+        <p class="muted">{t['events.none']}</p>
+      </div>
+      <div class="btn-row">
+        <a href={site.social.facebook} class="btn btn--dark" target="_blank" rel="noopener"><Icon name="facebook" /> Facebook</a>
+        <a href={site.social.youtube} class="btn btn--ghost" target="_blank" rel="noopener"><Icon name="youtube" /> YouTube</a>
+      </div>
+    </div>
+
+    <div class="section-head past-head reveal">
+      <span class="kicker">{t['events.past']}</span>
+    </div>
+    <div class="grid past">
+      {past.map((e, i) => (
+        <a href={`/images/events/${e.f}.webp`} data-lb="events" data-caption={t[e.k]} class="ev reveal" data-delay={i}>
+          <span class="ev-img"><img src={`/images/events/${e.f}-sm.webp`} alt={t[e.k]} width="600" height="800" loading="lazy" /></span>
+          <span class="ev-name">{t[e.k]}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<section class="section section--dark">
+  <div class="container hl">
+    <div class="reveal">
+      <span class="kicker">{t['video.kicker']}</span>
+      <h2 class="h2">{t['events.highlights']}</h2>
+    </div>
+    <div class="reveal" data-delay="1">
+      <YouTube id={site.videos.event} title={t['events.highlights']} label={t['video.play']} />
+    </div>
+  </div>
+</section>
+
+<style>
+  .upcoming { display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center; padding: 28px; border-radius: var(--radius-lg); background: var(--white); border: 1px solid var(--line); margin-bottom: 72px; }
+  .upcoming p { margin: 0; }
+  .upcoming h2 { margin-bottom: 4px; }
+  .up-icon { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; background: var(--forest-900); color: var(--ochre-400); }
+  .past-head { margin-bottom: 24px; }
+  .past { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ev { display: grid; gap: 12px; }
+  .ev-img { border-radius: var(--radius); overflow: hidden; aspect-ratio: 3/4; background: var(--sand-200); box-shadow: var(--shadow-sm); }
+  .ev-img img { width: 100%; height: 100%; object-fit: cover; object-position: top; transition: transform 0.8s var(--ease); }
+  .ev:hover img { transform: scale(1.05); }
+  .ev-name { font-weight: 700; }
+  .hl { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+  @media (max-width: 900px) {
+    .upcoming { grid-template-columns: auto 1fr; }
+    .upcoming .btn-row { grid-column: 1 / -1; }
+    .past { grid-template-columns: 1fr 1fr; }
+    .hl { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) { .past { grid-template-columns: 1fr; } .upcoming { grid-template-columns: 1fr; } }
+</style>

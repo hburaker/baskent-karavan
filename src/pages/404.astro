@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import { products, img } from '../data/products';
+import { ui, url, productUrl } from '../i18n/ui';
+const lang = 'tr';
+const t = ui[lang];
+---
+<Layout lang={lang} title={t['nf.title']}>
+  <section class="nf">
+    <div class="container">
+      <p class="code">404</p>
+      <h1 class="h2">{t['nf.title']}</h1>
+      <p class="lead">{t['nf.text']}</p>
+      <p class="muted en">Page not found · Seite nicht gefunden · Страница не найдена</p>
+      <div class="btn-row">
+        <a href={url(lang, 'models')} class="btn btn--primary btn--lg">{t['cta.explore']} <Icon name="arrow-right" /></a>
+        <a href={url(lang, 'home')} class="btn btn--ghost btn--lg">{t['nav.home']}</a>
+      </div>
+      <div class="nf-models">
+        {products.map((p) => (
+          <a href={productUrl(lang, p.slug)}><img src={img(p.slug, 'ext', p.hero, true)} alt="" width="240" height="135" loading="lazy" /><span>{p.name}</span></a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>
+<style>
+  .nf { padding: calc(var(--header-h) + 80px) 0 100px; text-align: center; }
+  .code { font-size: clamp(5rem, 16vw, 10rem); font-weight: 800; line-height: 1; letter-spacing: -0.05em; color: var(--ochre-400); margin: 0; }
+  .lead, .en { max-width: 560px; margin-inline: auto; }
+  .btn-row { justify-content: center; margin-top: 28px; }
+  .nf-models { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 56px; }
+  .nf-models a { display: grid; gap: 6px; font-weight: 700; font-size: 0.9rem; }
+  .nf-models img { border-radius: 12px; aspect-ratio: 16/9; object-fit: cover; width: 100%; }
+  @media (max-width: 760px) { .nf-models { grid-template-columns: repeat(3, 1fr); } }
+</style>

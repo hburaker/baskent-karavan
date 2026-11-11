@@ -1,0 +1,67 @@
+---
+import Icon from './Icon.astro';
+import { img, type Product } from '../data/products';
+import { ui, productUrl, formatPrice, type Lang } from '../i18n/ui';
+
+interface Props { p: Product; lang: Lang; delay?: number; eager?: boolean }
+const { p, lang, delay = 0, eager = false } = Astro.props;
+const t = ui[lang];
+const chips = [
+  p.capacity && { icon: 'users', text: `${p.capacity} ${t['product.persons']}` },
+  { icon: 'brake', text: p.specs.axle },
+  { icon: 'droplet', text: `${p.specs.water} L` },
+  p.specs.solar && { icon: 'sun', text: 'Solar' },
+  p.specs.heater && { icon: 'flame', text: t['spec.heater'] },
+].filter(Boolean).slice(0, 4) as { icon: string; text: string }[];
+---
+<article class="pcard reveal" data-delay={delay}>
+  <a href={productUrl(lang, p.slug)} class="pcard-media" aria-label={p.name}>
+    <img class="pcard-ext" src={img(p.slug, 'ext', p.hero, true)} alt={p.name} width="720" height="405" loading={eager ? 'eager' : 'lazy'} />
+    <img class="pcard-int" src={img(p.slug, 'int', p.heroInt, true)} alt="" width="720" height="405" loading="lazy" />
+    <span class="pcard-series">{p.series}</span>
+    <span class="pcard-hint"><Icon name="expand" size={16} /> {t['models.hoverHint']}</span>
+  </a>
+  <div class="pcard-body">
+    <div class="pcard-top">
+      <h3><a href={productUrl(lang, p.slug)}>{p.name}</a></h3>
+      <div class="price-tag"><strong>{formatPrice(p.price, lang)}</strong><small>{t['price.vat']}</small></div>
+    </div>
+    <p class="pcard-tag">{p.tagline[lang]}</p>
+    <div class="pcard-chips">
+      {chips.map((c) => <span class="chip"><Icon name={c.icon} /> {c.text}</span>)}
+    </div>
+    <div class="pcard-actions">
+      <a href={productUrl(lang, p.slug)} class="btn btn--dark">{t['cta.details']} <Icon name="arrow-right" /></a>
+      <a href={`${productUrl(lang, p.slug)}#yapilandir`} class="link-arrow">{t['cta.calc']} <Icon name="sliders" /></a>
+    </div>
+  </div>
+</article>
+
+<style>
+  .pcard { display: flex; flex-direction: column; background: var(--white); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--line); transition: box-shadow 0.4s var(--ease), transform 0.4s var(--ease); }
+  .pcard:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); }
+  .pcard-media { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: var(--sand-200); }
+  .pcard-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 0.6s var(--ease), transform 1.2s var(--ease); }
+  .pcard-int { opacity: 0; transform: scale(1.08); }
+  .pcard:hover .pcard-int, .pcard-media:focus-visible .pcard-int { opacity: 1; transform: scale(1); }
+  .pcard:hover .pcard-ext { transform: scale(1.06); }
+  .pcard-series {
+    position: absolute; left: 16px; top: 16px; padding: 6px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+    background: rgb(11 21 18 / 0.75); color: var(--sand-50); backdrop-filter: blur(6px);
+  }
+  .pcard-hint {
+    position: absolute; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 700; background: rgb(255 255 255 / 0.92); color: var(--ink); transition: opacity 0.3s, transform 0.3s var(--ease);
+  }
+  .pcard:hover .pcard-hint { opacity: 0; transform: translateY(6px); }
+  .pcard-body { display: flex; flex-direction: column; gap: 14px; padding: 22px 24px 24px; flex: 1; }
+  .pcard-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .pcard h3 { font-size: 1.55rem; margin: 0; }
+  .pcard h3 a:hover { color: var(--ochre-700); }
+  .pcard .price-tag strong { font-size: 1.2rem; color: var(--forest-700); }
+  .pcard-tag { color: var(--muted); margin: 0; font-size: 0.96rem; }
+  .pcard-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pcard-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 6px; flex-wrap: wrap; }
+  .pcard-actions .btn { min-height: 46px; padding: 0 20px; }
+  @media (hover: none) { .pcard-hint { display: none; } }
+</style>
