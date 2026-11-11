@@ -1,0 +1,13 @@
+{
+  // Cloudflare Workers ayarı (statik Astro sitesi). Worker adı Cloudflare'deki proje adıyla aynı olmalı.
+  "name": "baskent-karavan",
+  "compatibility_date": "2026-11-11",
+  "assets": {
+    // `npm run build` çıktısı. public/_redirects buraya kopyalanır ve Cloudflare tarafından okunur.
+    "directory": "./dist",
+    // Olmayan adreslerde src/pages/404.astro sayfası 404 koduyla gösterilir
+    "not_found_handling": "404-page",
+    // /prime-400/ gibi klasör sayfaları sonda "/" ile sunulur (eski WordPress adresleriyle aynı)
+    "html_handling": "auto-trailing-slash"
+  }
+}
